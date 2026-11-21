@@ -1,26 +1,23 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
 
-namespace FuelDelivery.Parsing;
+namespace FuelDelivery.Tasks.Parsing;
 
 /// <summary>Parses dates in YYYY-MM-DD or DD/MM/YYYY format. Anything else is invalid.</summary>
-public static partial class DateParser
+public class DateParser
 {
-    [GeneratedRegex(@"^(?<y>[0-9]{4})-(?<m>[0-9]{2})-(?<d>[0-9]{2})\z")]
-    private static partial Regex IsoFormat();
+    private readonly Regex isoFormat = new(@"^(?<y>[0-9]{4})-(?<m>[0-9]{2})-(?<d>[0-9]{2})\z");
+    private readonly Regex dayFirstFormat = new(@"^(?<d>[0-9]{2})/(?<m>[0-9]{2})/(?<y>[0-9]{4})\z");
 
-    [GeneratedRegex(@"^(?<d>[0-9]{2})/(?<m>[0-9]{2})/(?<y>[0-9]{4})\z")]
-    private static partial Regex DayFirstFormat();
-
-    public static bool TryParse(string? text, out DateOnly date)
+    public bool TryParse(string? text, out DateOnly date)
     {
         date = default;
         if (text is null)
             return false;
 
-        Match match = IsoFormat().Match(text);
+        Match match = isoFormat.Match(text);
         if (!match.Success)
-            match = DayFirstFormat().Match(text);
+            match = dayFirstFormat.Match(text);
         if (!match.Success)
             return false;
 
@@ -35,6 +32,6 @@ public static partial class DateParser
         return true;
     }
 
-    public static string Format(DateOnly date) =>
+    public string Format(DateOnly date) =>
         date.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 }

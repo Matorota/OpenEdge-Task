@@ -1,11 +1,21 @@
-﻿using FuelDelivery.Output;
-using FuelDelivery.Parsing;
+﻿using FuelDelivery.Tasks.Input;
+using FuelDelivery.Tasks.Output;
+using FuelDelivery.Tasks.Parsing;
+using FuelDelivery.Tasks.Pricing;
 using FuelDelivery.Tasks.Task1;
+using FuelDelivery.Tasks.Task2;
+
+// Create all objects once and pass them where they are needed.
+var dateParser = new DateParser();
+var calculator = new PriceCalculator(new PricingRules());
+var csv = new CsvWriter("output", "Matas_Strimaitis");
+var priceReport = new PriceReport(csv);
+var prompt = new ConsolePrompt(Console.In, Console.Out, echoAnswers: Console.IsInputRedirected);
 
 ShipmentFile shipmentFile;
 try
 {
-    shipmentFile = ShipmentReader.Parse(File.ReadAllText("shipments.json"));
+    shipmentFile = new ShipmentReader(dateParser).Parse(File.ReadAllText("shipments.json"));
 }
 catch (Exception e) when (e is IOException or UnauthorizedAccessException or System.Text.Json.JsonException)
 {
@@ -13,7 +23,17 @@ catch (Exception e) when (e is IOException or UnauthorizedAccessException or Sys
     return 1;
 }
 
-ErrorReport.Write(shipmentFile.Rejections);
-StandardPricingTask.Run(shipmentFile.Shipments);
+new ErrorReport(csv).Write(shipmentFile.Rejections);
+new StandardPricingTask(calculator, priceReport).Run(shipmentFile.Shipments);
+
+try
+{
+    new WhatIfPricingTask(calculator, priceReport, prompt).Run(shipmentFile.Shipments);
+}
+catch (EndOfStreamException e)
+{
+    Console.Error.WriteLine(e.Message);
+    return 1;
+}
 
 return 0;

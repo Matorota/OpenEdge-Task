@@ -1,7 +1,7 @@
 namespace FuelDelivery.Domain;
 
 /// <summary>A validated delivery, ready to be priced.</summary>
-public sealed record Shipment(
+public record Shipment(
     string Id,
     FuelType Type,
     ClientType Client,

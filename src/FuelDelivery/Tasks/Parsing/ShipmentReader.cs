@@ -1,31 +1,41 @@
 using System.Text.Json;
 using FuelDelivery.Domain;
 
-namespace FuelDelivery.Parsing;
+namespace FuelDelivery.Tasks.Parsing;
 
-public sealed record Rejection(string ShipmentId, ErrorCode Code);
+public enum ErrorCode
+{
+    MissingField,
+    UnknownType,
+    UnknownClient,
+    InvalidDate,
+    InvalidValue,
+    DuplicateId
+}
 
-public sealed record ShipmentFile(IReadOnlyList<Shipment> Shipments, IReadOnlyList<Rejection> Rejections);
+public record Rejection(string ShipmentId, ErrorCode Code);
+
+public record ShipmentFile(IReadOnlyList<Shipment> Shipments, IReadOnlyList<Rejection> Rejections);
 
 /// <summary>Reads shipments.json and splits records into valid shipments and rejections.</summary>
-public static class ShipmentReader
+public class ShipmentReader(DateParser dateParser)
 {
-    private static readonly string[] RequiredFields = ["type", "client", "date", "volume", "distance", "basePrice"];
+    private readonly string[] requiredFields = ["type", "client", "date", "volume", "distance", "basePrice"];
 
-    private static readonly Dictionary<string, FuelType> FuelTypes = new(StringComparer.OrdinalIgnoreCase)
+    private readonly Dictionary<string, FuelType> fuelTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         ["GASOLINE"] = FuelType.Gasoline,
         ["DIESEL"] = FuelType.Diesel,
         ["LPG"] = FuelType.Lpg
     };
 
-    private static readonly Dictionary<string, ClientType> ClientTypes = new(StringComparer.OrdinalIgnoreCase)
+    private readonly Dictionary<string, ClientType> clientTypes = new(StringComparer.OrdinalIgnoreCase)
     {
         ["PRIVATE"] = ClientType.Private,
         ["EXEMPT"] = ClientType.Exempt
     };
 
-    public static ShipmentFile Parse(string json)
+    public ShipmentFile Parse(string json)
     {
         using JsonDocument document = JsonDocument.Parse(json);
         if (document.RootElement.ValueKind != JsonValueKind.Array)
@@ -48,7 +58,7 @@ public static class ShipmentReader
     }
 
     /// <summary>Returns null when the record is valid, otherwise the first problem found.</summary>
-    private static Rejection? TryParseRecord(JsonElement record, HashSet<string> seenIds, out Shipment? shipment)
+    private Rejection? TryParseRecord(JsonElement record, HashSet<string> seenIds, out Shipment? shipment)
     {
         shipment = null;
         if (record.ValueKind != JsonValueKind.Object || !TryGetField(record, "id", out JsonElement idElement))
@@ -64,19 +74,19 @@ public static class ShipmentReader
         if (idElement.ValueKind != JsonValueKind.String)
             return new Rejection(id, ErrorCode.InvalidValue);
 
-        foreach (string field in RequiredFields)
+        foreach (string field in requiredFields)
         {
             if (!TryGetField(record, field, out _))
                 return new Rejection(id, ErrorCode.MissingField);
         }
 
-        if (!TryLookup(record.GetProperty("type"), FuelTypes, out FuelType type))
+        if (!TryLookup(record.GetProperty("type"), fuelTypes, out FuelType type))
             return new Rejection(id, ErrorCode.UnknownType);
-        if (!TryLookup(record.GetProperty("client"), ClientTypes, out ClientType client))
+        if (!TryLookup(record.GetProperty("client"), clientTypes, out ClientType client))
             return new Rejection(id, ErrorCode.UnknownClient);
 
         JsonElement dateElement = record.GetProperty("date");
-        if (dateElement.ValueKind != JsonValueKind.String || !DateParser.TryParse(dateElement.GetString(), out DateOnly date))
+        if (dateElement.ValueKind != JsonValueKind.String || !dateParser.TryParse(dateElement.GetString(), out DateOnly date))
             return new Rejection(id, ErrorCode.InvalidDate);
 
         if (!TryGetNumber(record, "volume", out decimal volume) || volume <= 0
@@ -88,10 +98,10 @@ public static class ShipmentReader
         return null;
     }
 
-    private static bool TryGetField(JsonElement record, string name, out JsonElement value) =>
+    private bool TryGetField(JsonElement record, string name, out JsonElement value) =>
         record.TryGetProperty(name, out value) && value.ValueKind != JsonValueKind.Null;
 
-    private static bool TryLookup<T>(JsonElement element, Dictionary<string, T> values, out T result)
+    private bool TryLookup<T>(JsonElement element, Dictionary<string, T> values, out T result)
     {
         result = default!;
         return element.ValueKind == JsonValueKind.String
@@ -99,7 +109,7 @@ public static class ShipmentReader
     }
 
     // Numbers given as text ("6200") are invalid on purpose.
-    private static bool TryGetNumber(JsonElement record, string name, out decimal value)
+    private bool TryGetNumber(JsonElement record, string name, out decimal value)
     {
         value = 0;
         JsonElement element = record.GetProperty(name);

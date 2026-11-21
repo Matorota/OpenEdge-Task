@@ -1,12 +1,14 @@
 using System.Globalization;
 using FuelDelivery.Domain;
-using FuelDelivery.Pricing;
+using FuelDelivery.Tasks.Pricing;
 
 namespace FuelDelivery.Tests.Pricing;
 
 public class PriceCalculatorTests
 {
-    private static Shipment Make(
+    private readonly PriceCalculator calculator = new(new PricingRules());
+
+    private Shipment Make(
         FuelType type = FuelType.Diesel,
         ClientType client = ClientType.Private,
         string date = "2024-07-04",
@@ -18,24 +20,37 @@ public class PriceCalculatorTests
     [Fact]
     public void Calculates_example_from_task_description()
     {
-        var invoice = PriceCalculator.Calculate(
-            Make(FuelType.Lpg, ClientType.Private, "2024-07-04", 12000m, 90m, 0.51m), TaxRates.Standard);
+        DeliveryPrice price = calculator.Calculate(Make(FuelType.Lpg, ClientType.Private, "2024-07-04", 12000m, 90m, 0.51m));
 
-        Assert.Equal(5814.00m, invoice.NetFuelPrice);
-        Assert.Equal(162.00m, invoice.LogisticsCost);
-        Assert.Equal(2160.00m, invoice.Excise);
-        Assert.Equal(1871.28m, invoice.Vat);
-        Assert.Equal(4031.28m, invoice.TotalTax);
-        Assert.Equal(10007.28m, invoice.GrandTotal);
+        Assert.Equal(5814.00m, price.NetFuelPrice);
+        Assert.Equal(162.00m, price.LogisticsCost);
+        Assert.Equal(2160.00m, price.Excise);
+        Assert.Equal(1871.28m, price.Vat);
+        Assert.Equal(4031.28m, price.TotalTax);
+        Assert.Equal(10007.28m, price.GrandTotal);
     }
 
     [Fact]
-    public void Applies_discount_before_rounding()
+    public void Calculates_example_with_custom_rates()
     {
-        var invoice = PriceCalculator.Calculate(Make(volume: 6200m, basePrice: 0.8775m), TaxRates.Standard);
+        DeliveryPrice price = calculator.Calculate(
+            Make(FuelType.Lpg, ClientType.Private, "2024-07-04", 12000m, 90m, 0.51m), new TaxOverride(0.25m, 0.52m));
 
-        Assert.Equal(5168.48m, invoice.NetFuelPrice);
+        Assert.Equal(4194.00m, price.TotalTax);
+        Assert.Equal(10170.00m, price.GrandTotal);
     }
+
+    [Fact]
+    public void Applies_discount_before_rounding() =>
+        Assert.Equal(5168.48m, calculator.Calculate(Make(volume: 6200m, basePrice: 0.8775m)).NetFuelPrice);
+
+    [Theory]
+    [InlineData("0.125", "0.13")]
+    [InlineData("2.675", "2.68")]
+    public void Rounds_money_half_up(string basePrice, string expected) =>
+        Assert.Equal(
+            decimal.Parse(expected, CultureInfo.InvariantCulture),
+            calculator.Calculate(Make(volume: 1m, basePrice: decimal.Parse(basePrice, CultureInfo.InvariantCulture))).NetFuelPrice);
 
     [Theory]
     [InlineData(5000, 0)]
@@ -43,28 +58,31 @@ public class PriceCalculatorTests
     [InlineData(20000, 0.05)]
     [InlineData(20001, 0.10)]
     public void Discount_starts_above_limits(int volume, decimal expected) =>
-        Assert.Equal(expected, PriceCalculator.DiscountRate(volume));
+        Assert.Equal(expected, calculator.DiscountRate(volume));
 
     [Theory]
     [InlineData(999, 330)]
     [InlineData(1000, 180)]
     public void Small_load_fee_applies_under_1000_litres(int volume, decimal expected) =>
-        Assert.Equal(expected, PriceCalculator.Calculate(Make(volume: volume), TaxRates.Standard).LogisticsCost);
+        Assert.Equal(expected, calculator.Calculate(Make(volume: volume)).LogisticsCost);
 
     [Theory]
     [InlineData("2023-12-31", 0.21)]
     [InlineData("2024-01-01", 0.23)]
     public void Private_vat_changes_on_2024_01_01(string date, decimal expected) =>
-        Assert.Equal(expected, TaxRates.Standard.VatRate(ClientType.Private, DateOnly.Parse(date, CultureInfo.InvariantCulture)));
+        Assert.Equal(expected, calculator.VatRate(ClientType.Private, DateOnly.Parse(date, CultureInfo.InvariantCulture)));
 
     [Fact]
-    public void Exempt_client_pays_no_vat() =>
-        Assert.Equal(0m, PriceCalculator.Calculate(Make(client: ClientType.Exempt), TaxRates.Standard).Vat);
+    public void Exempt_client_pays_no_vat_even_with_custom_rate() =>
+        Assert.Equal(0m, calculator.Calculate(Make(client: ClientType.Exempt), new TaxOverride(0.25m, 0.52m)).Vat);
 
-    [Theory]
-    [InlineData("0.125", "0.13")]
-    [InlineData("2.675", "2.68")]
-    [InlineData("1234567.005", "1234567.01")]
-    public void Money_rounds_half_up_and_formats_invariant(string value, string expected) =>
-        Assert.Equal(expected, Money.Format(Money.Round(decimal.Parse(value, CultureInfo.InvariantCulture))));
+    [Fact]
+    public void Custom_excise_replaces_only_gasoline()
+    {
+        var taxOverride = new TaxOverride(0.25m, 0.52m);
+
+        Assert.Equal(0.52m, calculator.ExcisePerLitre(FuelType.Gasoline, taxOverride));
+        Assert.Equal(0.33m, calculator.ExcisePerLitre(FuelType.Diesel, taxOverride));
+        Assert.Equal(0.18m, calculator.ExcisePerLitre(FuelType.Lpg, taxOverride));
+    }
 }

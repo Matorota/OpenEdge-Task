@@ -1,9 +1,7 @@
-using FuelDelivery.Domain;
+namespace FuelDelivery.Tasks.Pricing;
 
-namespace FuelDelivery.Pricing;
-
-public sealed record Invoice(
-    Shipment Shipment,
+/// <summary>The calculated price of one delivery.</summary>
+public record DeliveryPrice(
     decimal NetFuelPrice,
     decimal LogisticsCost,
     decimal Excise,
