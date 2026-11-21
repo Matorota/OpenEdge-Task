@@ -1,0 +1,15 @@
+# Build output
+bin/
+obj/
+*.user
+
+# IDE
+.idea/
+.vs/
+.vscode/
+
+# Program output
+/output/
+
+# Task description (kept private)
+*.pdf
