@@ -7,6 +7,20 @@ using FuelDelivery.Tasks.Pricing;
 using FuelDelivery.Tasks.Task1;
 using FuelDelivery.Tasks.Task2;
 
+// No argument runs everything (required by the task). An argument runs one part, for example "task2".
+string part = args.Length > 0 ? args[0].Trim().ToLowerInvariant() : "all";
+if (part is not ("all" or "task1" or "task2" or "bonus1" or "bonus2"))
+{
+    Console.Error.WriteLine($"Unknown part '{args[0]}'. Use task1, task2, bonus1, bonus2 or no argument for all.");
+    return 1;
+}
+
+// Bonus 2 needs Task 1 results, Bonus 1 needs Task 2 results.
+bool runTask1 = part is "all" or "task1" or "bonus2";
+bool runBonus2 = part is "all" or "bonus2";
+bool runTask2 = part is "all" or "task2" or "bonus1";
+bool runBonus1 = part is "all" or "bonus1";
+
 // Create all objects once and pass them where they are needed.
 var rules = new PricingRules();
 var dateParser = new DateParser();
@@ -27,15 +41,25 @@ catch (Exception e) when (e is IOException or UnauthorizedAccessException or Sys
 }
 
 new ErrorReport(csv).Write(shipmentFile.Rejections);
-var task1Results = new StandardPricingTask(calculator, priceReport).Run(shipmentFile.Shipments);
 
-// Bonus 2 asks nothing, so it runs before the questions.
-new LateInterestTask(new LateInterestCalculator(rules), dateParser, csv).Run(task1Results, ReadPayments());
+if (runTask1)
+{
+    var task1Results = new StandardPricingTask(calculator, priceReport).Run(shipmentFile.Shipments);
+
+    // Bonus 2 asks nothing, so it runs before the questions.
+    if (runBonus2)
+        new LateInterestTask(new LateInterestCalculator(rules), dateParser, csv).Run(task1Results, ReadPayments());
+}
 
 try
 {
-    var task2Results = new WhatIfPricingTask(calculator, priceReport, prompt).Run(shipmentFile.Shipments);
-    new DateRangeReportTask(prompt, csv).Run(task2Results);
+    if (runTask2)
+    {
+        var task2Results = new WhatIfPricingTask(calculator, priceReport, prompt).Run(shipmentFile.Shipments);
+
+        if (runBonus1)
+            new DateRangeReportTask(prompt, csv).Run(task2Results);
+    }
 }
 catch (EndOfStreamException e)
 {
