@@ -1,18 +1,20 @@
 using FuelDelivery.Domain;
-using FuelDelivery.Parsing;
+using FuelDelivery.Tasks.Parsing;
 
 namespace FuelDelivery.Tests.Parsing;
 
 public class ShipmentReaderTests
 {
-    private static ErrorCode? CodeFor(string record)
+    private readonly ShipmentReader reader = new(new DateParser());
+
+    private ErrorCode? CodeFor(string record)
     {
-        ShipmentFile file = ShipmentReader.Parse($"[{record}]");
+        ShipmentFile file = reader.Parse($"[{record}]");
         return file.Rejections.Count == 0 ? null : file.Rejections[0].Code;
     }
 
     /// <summary>Builds a valid record with one field replaced (or removed with "&lt;missing&gt;").</summary>
-    private static string RecordWith(string field, string jsonValue)
+    private string RecordWith(string field, string jsonValue)
     {
         var fields = new Dictionary<string, string>
         {
@@ -29,7 +31,7 @@ public class ShipmentReaderTests
     [Fact]
     public void Accepts_valid_record_with_case_and_spaces()
     {
-        ShipmentFile file = ShipmentReader.Parse(
+        ShipmentFile file = reader.Parse(
             "[{ \"id\": \"a\", \"type\": \"  gasoline \", \"client\": \" Exempt\", \"date\": \"15/01/2024\", \"volume\": 25000, \"distance\": 320, \"basePrice\": 0.89 }]");
 
         Shipment shipment = Assert.Single(file.Shipments);
@@ -62,7 +64,7 @@ public class ShipmentReaderTests
     [Fact]
     public void Missing_id_leaves_shipment_id_empty()
     {
-        ShipmentFile file = ShipmentReader.Parse($"[{RecordWith("id", "<missing>")}, {RecordWith("id", "null")}]");
+        ShipmentFile file = reader.Parse($"[{RecordWith("id", "<missing>")}, {RecordWith("id", "null")}]");
 
         Assert.All(file.Rejections, r => Assert.Equal(new Rejection("", ErrorCode.MissingField), r));
     }
@@ -70,7 +72,7 @@ public class ShipmentReaderTests
     [Fact]
     public void Duplicate_id_counts_even_if_first_record_was_invalid()
     {
-        ShipmentFile file = ShipmentReader.Parse(
+        ShipmentFile file = reader.Parse(
             $"[{RecordWith("type", "\"KEROSENE\"")}, {RecordWith("id", "\"a\"")}, {RecordWith("id", "\"A\"")}]");
 
         Assert.Equal([ErrorCode.UnknownType, ErrorCode.DuplicateId], file.Rejections.Select(r => r.Code));
@@ -81,7 +83,7 @@ public class ShipmentReaderTests
     public void Sample_file_gives_one_error_of_each_kind()
     {
         string json = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "../../../../../shipments.json"));
-        ShipmentFile file = ShipmentReader.Parse(json);
+        ShipmentFile file = reader.Parse(json);
 
         Assert.Equal(11, file.Shipments.Count);
         Assert.Equal(

@@ -1,16 +1,16 @@
 using FuelDelivery.Domain;
-using FuelDelivery.Output;
-using FuelDelivery.Pricing;
+using FuelDelivery.Tasks.Output;
+using FuelDelivery.Tasks.Pricing;
 
 namespace FuelDelivery.Tasks.Task1;
 
 /// <summary>Task 1: prices every delivery with the standard rates.</summary>
-public static class StandardPricingTask
+public class StandardPricingTask(PriceCalculator calculator, PriceReport report)
 {
-    public static IReadOnlyList<Invoice> Run(IReadOnlyList<Shipment> shipments)
+    public List<(Shipment Shipment, DeliveryPrice Price)> Run(IReadOnlyList<Shipment> shipments)
     {
-        List<Invoice> invoices = shipments.Select(s => PriceCalculator.Calculate(s, TaxRates.Standard)).ToList();
-        PriceReport.Write("task1.csv", invoices);
-        return invoices;
+        var pricedShipments = shipments.Select(s => (s, calculator.Calculate(s))).ToList();
+        report.Write("task1.csv", pricedShipments);
+        return pricedShipments;
     }
 }

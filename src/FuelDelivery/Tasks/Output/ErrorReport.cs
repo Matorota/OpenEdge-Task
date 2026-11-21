@@ -1,18 +1,14 @@
-namespace FuelDelivery.Parsing;
+using FuelDelivery.Tasks.Parsing;
 
-public enum ErrorCode
-{
-    MissingField,
-    UnknownType,
-    UnknownClient,
-    InvalidDate,
-    InvalidValue,
-    DuplicateId
-}
+namespace FuelDelivery.Tasks.Output;
 
-public static class ErrorCodeExtensions
+public class ErrorReport(CsvWriter csv)
 {
-    public static string ToCode(this ErrorCode code) => code switch
+    public void Write(IEnumerable<Rejection> rejections) =>
+        csv.Write("errors.csv", "ShipmentID,ErrorCode",
+            rejections.Select(r => csv.Row(r.ShipmentId, ToCode(r.Code))));
+
+    private string ToCode(ErrorCode code) => code switch
     {
         ErrorCode.MissingField => "MISSING_FIELD",
         ErrorCode.UnknownType => "UNKNOWN_TYPE",

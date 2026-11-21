@@ -1,16 +1,18 @@
-using FuelDelivery.Parsing;
+using FuelDelivery.Tasks.Parsing;
 
 namespace FuelDelivery.Tests.Parsing;
 
 public class DateParserTests
 {
+    private readonly DateParser parser = new();
+
     [Theory]
     [InlineData("2024-02-29", 2024, 2, 29)]
     [InlineData("15/01/2024", 2024, 1, 15)]
     [InlineData("31/12/2023", 2023, 12, 31)]
     public void Parses_both_formats(string text, int year, int month, int day)
     {
-        Assert.True(DateParser.TryParse(text, out DateOnly date));
+        Assert.True(parser.TryParse(text, out DateOnly date));
         Assert.Equal(new DateOnly(year, month, day), date);
     }
 
@@ -31,5 +33,5 @@ public class DateParserTests
     [InlineData("")]
     [InlineData(null)]
     public void Rejects_invalid_dates(string? text) =>
-        Assert.False(DateParser.TryParse(text, out _));
+        Assert.False(parser.TryParse(text, out _));
 }
