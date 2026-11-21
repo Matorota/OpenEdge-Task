@@ -15,7 +15,7 @@ public class WhatIfPricingTask(PriceCalculator calculator, PriceReport report, C
 
         var taxOverride = new TaxOverride(vatPercent / 100m, gasolineExcise);
         var pricedShipments = shipments.Select(s => (s, calculator.Calculate(s, taxOverride))).ToList();
-        report.Write("task2.csv", pricedShipmentyess);
+        report.Write("task2.csv", pricedShipments);
         return pricedShipments;
     }
 }

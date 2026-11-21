@@ -25,4 +25,11 @@ public class PricingRules
     public decimal PrivateVatBeforeChange { get; } = 0.21m;
     public decimal PrivateVatFromChange { get; } = 0.23m;
     public decimal ExemptVat { get; } = 0m;
+
+    public int PaymentTermDays { get; } = 30;
+    public DateOnly ReportDate { get; } = new(2024, 7, 20);
+    public DateOnly InterestChangeDate { get; } = new(2024, 7, 1);
+    public decimal InterestBeforeChange { get; } = 0.12m;
+    public decimal InterestFromChange { get; } = 0.09m;
+    public int DaysPerYear { get; } = 365;
 }
