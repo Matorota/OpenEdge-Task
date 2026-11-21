@@ -5,7 +5,7 @@ using FuelDelivery.Tasks.Pricing;
 
 namespace FuelDelivery.Tasks.Task2;
 
-/// <summary>Task 2: prices every delivery again with a custom private VAT and gasoline excise.</summary>
+// Task 2: prices every delivery again with a custom private VAT and gasoline excise.
 public class WhatIfPricingTask(PriceCalculator calculator, PriceReport report, ConsolePrompt prompt)
 {
     public List<(Shipment Shipment, DeliveryPrice Price)> Run(IReadOnlyList<Shipment> shipments)

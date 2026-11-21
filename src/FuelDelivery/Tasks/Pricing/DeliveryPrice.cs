@@ -1,6 +1,6 @@
 namespace FuelDelivery.Tasks.Pricing;
 
-/// <summary>The calculated price of one delivery.</summary>
+// The calculated price of one delivery.
 public record DeliveryPrice(
     decimal NetFuelPrice,
     decimal LogisticsCost,

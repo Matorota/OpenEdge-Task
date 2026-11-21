@@ -3,7 +3,7 @@ using System.Text;
 
 namespace FuelDelivery.Tasks.Output;
 
-/// <summary>Writes report files: author line, header, then one row per line.</summary>
+// Writes report files: author line, header, then one row per line.
 public class CsvWriter(string outputFolder, string authorLine)
 {
     public void Write(string fileName, string header, IEnumerable<string> rows)
@@ -20,7 +20,7 @@ public class CsvWriter(string outputFolder, string authorLine)
 
     public string Row(params string[] values) => string.Join(',', values.Select(Escape));
 
-    /// <summary>Always a dot, no thousands separator, exactly 2 decimals.</summary>
+    // Always a dot, no thousands separator, exactly 2 decimals.
     public string Money(decimal value) => value.ToString("0.00", CultureInfo.InvariantCulture);
 
     private string Escape(string value) =>
