@@ -7,6 +7,7 @@ namespace FuelDelivery.Tasks.Input;
 // echoAnswers prints each answer, so piped input still reads well on screen.
 public class ConsolePrompt(TextReader input, TextWriter output, DateParser dateParser, bool echoAnswers = false)
 {
+    // Allows spaces around the number, a sign and a dot. No commas or thousands separators.
     private const NumberStyles NumberFormat =
         NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite |
         NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint;
@@ -40,6 +41,7 @@ public class ConsolePrompt(TextReader input, TextWriter output, DateParser dateP
         }
     }
 
+    // Reads one line. Throws when the input has ended, so the program can stop instead of waiting.
     private string Ask(string question)
     {
         output.Write(question + " ");

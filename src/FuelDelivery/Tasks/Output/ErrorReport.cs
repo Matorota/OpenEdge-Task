@@ -2,6 +2,7 @@ using FuelDelivery.Tasks.Parsing;
 
 namespace FuelDelivery.Tasks.Output;
 
+// errors.csv: one row per rejected record with its error code.
 public class ErrorReport(CsvWriter csv)
 {
     public void Write(IEnumerable<Rejection> rejections) =>

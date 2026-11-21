@@ -56,6 +56,8 @@ public class ShipmentReaderTests
     [InlineData("distance", "-1", ErrorCode.InvalidValue)]
     [InlineData("basePrice", "-0.01", ErrorCode.InvalidValue)]
     [InlineData("basePrice", "true", ErrorCode.InvalidValue)]
+    [InlineData("volume", "1e20", ErrorCode.InvalidValue)]
+    [InlineData("basePrice", "1e400", ErrorCode.InvalidValue)]
     [InlineData("distance", "0", null)]
     [InlineData("basePrice", "0", null)]
     public void Detects_problems(string field, string jsonValue, ErrorCode? expected) =>

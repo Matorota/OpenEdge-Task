@@ -5,8 +5,10 @@ namespace FuelDelivery.Tasks.Pricing;
 // Prices one delivery. Every step is rounded before it is used in the next one.
 public class PriceCalculator(PricingRules rules)
 {
+    // taxOverride is null for Task 1 and holds the custom rates for Task 2.
     public DeliveryPrice Calculate(Shipment shipment, TaxOverride? taxOverride = null)
     {
+        // The discount is applied in one step and rounded only at the end, as the task requires.
         decimal netFuelPrice = RoundMoney(shipment.Volume * shipment.BasePrice * (1 - DiscountRate(shipment.Volume)));
         decimal logisticsCost = RoundMoney(shipment.Distance * rules.DeliveryPricePerKm) + SmallLoadFee(shipment.Volume);
         decimal excise = RoundMoney(shipment.Volume * ExcisePerLitre(shipment.Type, taxOverride));

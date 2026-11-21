@@ -22,6 +22,7 @@ public class DateRangeReportTask(ConsolePrompt prompt, CsvWriter csv)
         ]);
     }
 
+    // Works without console or files, so it can be tested directly.
     public DateRangeSummary Summarize(
         IEnumerable<(Shipment Shipment, DeliveryPrice Price)> results, DateOnly start, DateOnly end)
     {

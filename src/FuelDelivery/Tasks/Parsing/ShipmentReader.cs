@@ -20,6 +20,9 @@ public record ShipmentFile(IReadOnlyList<Shipment> Shipments, IReadOnlyList<Reje
 // Reads shipments.json and splits records into valid shipments and rejections.
 public class ShipmentReader(DateParser dateParser)
 {
+    // Larger numbers are not realistic and would overflow decimal in the price calculation.
+    private const decimal MaxNumber = 1_000_000_000m;
+
     private readonly string[] requiredFields = ["type", "client", "date", "volume", "distance", "basePrice"];
 
     private readonly Dictionary<string, FuelType> fuelTypes = new(StringComparer.OrdinalIgnoreCase)
@@ -58,6 +61,7 @@ public class ShipmentReader(DateParser dateParser)
     }
 
     // Returns null when the record is valid, otherwise the first problem found.
+    // Order: id, duplicate id, missing fields, type, client, date, numbers.
     private Rejection? TryParseRecord(JsonElement record, HashSet<string> seenIds, out Shipment? shipment)
     {
         shipment = null;
@@ -108,11 +112,13 @@ public class ShipmentReader(DateParser dateParser)
                && values.TryGetValue(element.GetString()!.Trim(), out result!);
     }
 
-    // Numbers given as text ("6200") are invalid on purpose.
+    // Numbers given as text ("6200") and numbers that are too large are invalid on purpose.
     private bool TryGetNumber(JsonElement record, string name, out decimal value)
     {
         value = 0;
         JsonElement element = record.GetProperty(name);
-        return element.ValueKind == JsonValueKind.Number && element.TryGetDecimal(out value);
+        return element.ValueKind == JsonValueKind.Number
+               && element.TryGetDecimal(out value)
+               && Math.Abs(value) <= MaxNumber;
     }
 }

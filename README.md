@@ -60,6 +60,8 @@ Output dates are always `YYYY-MM-DD`.
 
 - One error code per record, the first problem wins, in this order: missing id, duplicate id, missing field,
   unknown type, unknown client, invalid date, invalid value.
+- Numbers above 1,000,000,000 are treated as `INVALID_VALUE`, because they are not realistic and would overflow the calculation.
+- A missing or broken `payments.json` means no delivery has been paid.
 - Wrong answers (text, negative numbers, invalid dates, end before start) show an error and are asked again.
 - Bonus 2: when late days cross 2024-07-01, the 12% and 9% parts are rounded separately, then added.
 
