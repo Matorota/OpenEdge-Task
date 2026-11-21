@@ -17,7 +17,7 @@ public record Rejection(string ShipmentId, ErrorCode Code);
 
 public record ShipmentFile(IReadOnlyList<Shipment> Shipments, IReadOnlyList<Rejection> Rejections);
 
-/// <summary>Reads shipments.json and splits records into valid shipments and rejections.</summary>
+// Reads shipments.json and splits records into valid shipments and rejections.
 public class ShipmentReader(DateParser dateParser)
 {
     private readonly string[] requiredFields = ["type", "client", "date", "volume", "distance", "basePrice"];
@@ -57,7 +57,7 @@ public class ShipmentReader(DateParser dateParser)
         return new ShipmentFile(shipments, rejections);
     }
 
-    /// <summary>Returns null when the record is valid, otherwise the first problem found.</summary>
+    // Returns null when the record is valid, otherwise the first problem found.
     private Rejection? TryParseRecord(JsonElement record, HashSet<string> seenIds, out Shipment? shipment)
     {
         shipment = null;

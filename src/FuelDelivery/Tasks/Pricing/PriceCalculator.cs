@@ -2,7 +2,7 @@ using FuelDelivery.Domain;
 
 namespace FuelDelivery.Tasks.Pricing;
 
-/// <summary>Prices one delivery. Every step is rounded before it is used in the next one.</summary>
+// Prices one delivery. Every step is rounded before it is used in the next one.
 public class PriceCalculator(PricingRules rules)
 {
     public DeliveryPrice Calculate(Shipment shipment, TaxOverride? taxOverride = null)

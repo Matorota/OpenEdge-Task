@@ -2,7 +2,7 @@ using FuelDelivery.Domain;
 
 namespace FuelDelivery.Tasks.Pricing;
 
-/// <summary>All business rates, limits and rate-change dates.</summary>
+// All business rates, limits and rate-change dates.
 public class PricingRules
 {
     public decimal LargeVolumeLimit { get; } = 20000m;

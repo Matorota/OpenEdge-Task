@@ -1,4 +1,5 @@
-﻿using FuelDelivery.Tasks.Input;
+﻿using FuelDelivery.Tasks.Bonus1;
+using FuelDelivery.Tasks.Input;
 using FuelDelivery.Tasks.Output;
 using FuelDelivery.Tasks.Parsing;
 using FuelDelivery.Tasks.Pricing;
@@ -10,7 +11,7 @@ var dateParser = new DateParser();
 var calculator = new PriceCalculator(new PricingRules());
 var csv = new CsvWriter("output", "Matas_Strimaitis");
 var priceReport = new PriceReport(csv);
-var prompt = new ConsolePrompt(Console.In, Console.Out, echoAnswers: Console.IsInputRedirected);
+var prompt = new ConsolePrompt(Console.In, Console.Out, dateParser, echoAnswers: Console.IsInputRedirected);
 
 ShipmentFile shipmentFile;
 try
@@ -28,7 +29,8 @@ new StandardPricingTask(calculator, priceReport).Run(shipmentFile.Shipments);
 
 try
 {
-    new WhatIfPricingTask(calculator, priceReport, prompt).Run(shipmentFile.Shipments);
+    var task2Results = new WhatIfPricingTask(calculator, priceReport, prompt).Run(shipmentFile.Shipments);
+    new DateRangeReportTask(prompt, csv).Run(task2Results);
 }
 catch (EndOfStreamException e)
 {

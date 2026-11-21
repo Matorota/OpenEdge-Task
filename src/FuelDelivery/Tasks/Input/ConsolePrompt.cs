@@ -1,10 +1,11 @@
 using System.Globalization;
+using FuelDelivery.Tasks.Parsing;
 
 namespace FuelDelivery.Tasks.Input;
 
-/// <summary>Asks questions one line at a time and repeats until the answer is valid.</summary>
-/// <param name="echoAnswers">Prints each answer, so piped input still reads well on screen.</param>
-public class ConsolePrompt(TextReader input, TextWriter output, bool echoAnswers = false)
+// Asks questions one line at a time and repeats until the answer is valid.
+// echoAnswers prints each answer, so piped input still reads well on screen.
+public class ConsolePrompt(TextReader input, TextWriter output, DateParser dateParser, bool echoAnswers = false)
 {
     private const NumberStyles NumberFormat =
         NumberStyles.AllowLeadingWhite | NumberStyles.AllowTrailingWhite |
@@ -22,6 +23,20 @@ public class ConsolePrompt(TextReader input, TextWriter output, bool echoAnswers
                 return value;
 
             output.WriteLine("Error: enter a number that is 0 or greater, for example 25 or 0.52.");
+        }
+    }
+
+    public DateOnly AskDate(string question, DateOnly? notBefore = null)
+    {
+        while (true)
+        {
+            string answer = Ask(question).Trim();
+            if (!dateParser.TryParse(answer, out DateOnly date))
+                output.WriteLine("Error: enter a real date as YYYY-MM-DD or DD/MM/YYYY.");
+            else if (date < notBefore)
+                output.WriteLine($"Error: the date cannot be before {dateParser.Format(notBefore.Value)}.");
+            else
+                return date;
         }
     }
 

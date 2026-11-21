@@ -3,7 +3,7 @@ using FuelDelivery.Tasks.Pricing;
 
 namespace FuelDelivery.Tasks.Output;
 
-/// <summary>Price file shared by Task 1 and Task 2.</summary>
+// Price file shared by Task 1 and Task 2.
 public class PriceReport(CsvWriter csv)
 {
     public void Write(string fileName, IEnumerable<(Shipment Shipment, DeliveryPrice Price)> pricedShipments) =>

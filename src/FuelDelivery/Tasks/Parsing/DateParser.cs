@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace FuelDelivery.Tasks.Parsing;
 
-/// <summary>Parses dates in YYYY-MM-DD or DD/MM/YYYY format. Anything else is invalid.</summary>
+// Parses dates in YYYY-MM-DD or DD/MM/YYYY format. Anything else is invalid.
 public class DateParser
 {
     private readonly Regex isoFormat = new(@"^(?<y>[0-9]{4})-(?<m>[0-9]{2})-(?<d>[0-9]{2})\z");

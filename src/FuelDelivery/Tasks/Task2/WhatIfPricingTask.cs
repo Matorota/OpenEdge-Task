@@ -5,7 +5,7 @@ using FuelDelivery.Tasks.Pricing;
 
 namespace FuelDelivery.Tasks.Task2;
 
-/// <summary>Task 2: prices every delivery again with a custom private VAT and gasoline excise.</summary>
+// Task 2: prices every delivery again with a custom private VAT and gasoline excise.
 public class WhatIfPricingTask(PriceCalculator calculator, PriceReport report, ConsolePrompt prompt)
 {
     public List<(Shipment Shipment, DeliveryPrice Price)> Run(IReadOnlyList<Shipment> shipments)
@@ -15,7 +15,7 @@ public class WhatIfPricingTask(PriceCalculator calculator, PriceReport report, C
 
         var taxOverride = new TaxOverride(vatPercent / 100m, gasolineExcise);
         var pricedShipments = shipments.Select(s => (s, calculator.Calculate(s, taxOverride))).ToList();
-        report.Write("task2.csv", pricedShipments);
+        report.Write("task2.csv", pricedShipmentyess);
         return pricedShipments;
     }
 }

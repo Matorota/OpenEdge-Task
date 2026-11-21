@@ -13,7 +13,7 @@ public class ShipmentReaderTests
         return file.Rejections.Count == 0 ? null : file.Rejections[0].Code;
     }
 
-    /// <summary>Builds a valid record with one field replaced (or removed with "&lt;missing&gt;").</summary>
+    // Builds a valid record with one field replaced (or removed with "<missing>").
     private string RecordWith(string field, string jsonValue)
     {
         var fields = new Dictionary<string, string>

@@ -4,7 +4,7 @@ using FuelDelivery.Tasks.Pricing;
 
 namespace FuelDelivery.Tasks.Task1;
 
-/// <summary>Task 1: prices every delivery with the standard rates.</summary>
+// Task 1: prices every delivery with the standard rates.
 public class StandardPricingTask(PriceCalculator calculator, PriceReport report)
 {
     public List<(Shipment Shipment, DeliveryPrice Price)> Run(IReadOnlyList<Shipment> shipments)

@@ -1,11 +1,12 @@
 using FuelDelivery.Tasks.Input;
+using FuelDelivery.Tasks.Parsing;
 
 namespace FuelDelivery.Tests.Input;
 
 public class ConsolePromptTests
 {
     private ConsolePrompt Prompt(string input, StringWriter? output = null) =>
-        new(new StringReader(input), output ?? new StringWriter());
+        new(new StringReader(input), output ?? new StringWriter(), new DateParser());
 
     [Theory]
     [InlineData("25\n", 25)]
@@ -27,6 +28,12 @@ public class ConsolePromptTests
 
         Assert.Contains("Error", output.ToString());
     }
+
+    [Fact]
+    public void Asks_date_again_until_valid_and_not_before_limit() =>
+        Assert.Equal(
+            new DateOnly(2024, 1, 31),
+            Prompt("2024-02-30\n2023-12-31\n31/01/2024\n").AskDate("?", new DateOnly(2024, 1, 1)));
 
     [Fact]
     public void Throws_when_input_ends() =>
