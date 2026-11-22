@@ -6,6 +6,7 @@ namespace FuelDelivery.Tasks.Output;
 // Writes report files: author line, header, then one row per line.
 public class CsvWriter(string outputFolder, string authorLine)
 {
+    // Uses "\n" line endings and UTF-8 without BOM, so files are the same on every computer.
     public void Write(string fileName, string header, IEnumerable<string> rows)
     {
         var content = new StringBuilder();
@@ -23,6 +24,7 @@ public class CsvWriter(string outputFolder, string authorLine)
     // Always a dot, no thousands separator, exactly 2 decimals.
     public string Money(decimal value) => value.ToString("0.00", CultureInfo.InvariantCulture);
 
+    // Quotes a value only when it contains a comma, quote or line break.
     private string Escape(string value) =>
         value.IndexOfAny([',', '"', '\n', '\r']) < 0 ? value : $"\"{value.Replace("\"", "\"\"")}\"";
 }

@@ -7,14 +7,25 @@ C# (.NET 8) console program that prices fuel deliveries from `shipments.json` an
 ## How to run
 
 1. Install the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
-2. Open a terminal in this folder (where `shipments.json` and `payments.json` are).
-3. Run:
+2. Get the code and open a terminal in its folder:
+
+```
+git clone https://github.com/Matorota/OpenEdge-Task-.git
+cd OpenEdge-Task-
+```
+
+3. Run (no arguments needed):
 
 ```
 dotnet run --project src/FuelDelivery
 ```
 
+The program reads `shipments.json` and `payments.json` from the folder where it is started and writes the
+`output` folder there. To use other data, replace the two JSON files, or start it from the data folder:
+`dotnet run --project <path to this repo>/src/FuelDelivery`.
+
 The program asks, one line each: Task 2 VAT (%), Task 2 gasoline excise, Bonus 1 start date, Bonus 1 end date.
+It ends by itself after the last answer.
 
 ```
 PowerShell:    "25","0.52","2024-01-01","2024-01-31" | dotnet run --project src/FuelDelivery
@@ -54,12 +65,15 @@ tests/           Unit tests, including every example from the task
 
 Only `YYYY-MM-DD` and `DD/MM/YYYY` are accepted. A regular expression checks the exact format,
 then the date is checked to be real (`2024-02-29` is valid, `2023-02-30` is not).
+The same rules are used for shipment dates, payment dates and the Bonus 1 answers.
 Output dates are always `YYYY-MM-DD`.
 
 ## Assumptions
 
 - One error code per record, the first problem wins, in this order: missing id, duplicate id, missing field,
   unknown type, unknown client, invalid date, invalid value.
+- Numbers above 1,000,000,000 are treated as `INVALID_VALUE`, because they are not realistic and would overflow the calculation.
+- A missing or broken `payments.json` means no delivery has been paid.
 - Wrong answers (text, negative numbers, invalid dates, end before start) show an error and are asked again.
 - Bonus 2: when late days cross 2024-07-01, the 12% and 9% parts are rounded separately, then added.
 
