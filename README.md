@@ -4,6 +4,15 @@ C# (.NET 8) console program that prices fuel deliveries from `shipments.json` an
 
 **Parts done:** Task 1, Task 2, Bonus 1, Bonus 2.
 
+## Tech used
+
+- **Language:** C#
+- **Framework:** .NET 8 
+- **JSON:** System.Text.Json 
+- **Tests:** xUnit
+- **Tools:** Git and GitHub (Fork), Claude Code (AI helper)
+- **IDEA** IntelliJ C# Plugin
+
 ## How to run
 
 1. Install the [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0).
